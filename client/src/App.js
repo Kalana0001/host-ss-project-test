@@ -3,6 +3,8 @@ import { BrowserRouter, Route, Routes } from 'react-router-dom';
 import { ToastContainer } from 'react-toastify';
 import 'react-toastify/dist/ReactToastify.css';
 import LandingPage from './components/LandingPage/LandingPage';
+import SignUp from './components/SignUp/SignUp';
+import SignIn from './components/SignIn/SignIn';
 
 function App() {
   return (
@@ -12,6 +14,8 @@ function App() {
             <main>
               <Routes>
                 <Route path='/' element={<LandingPage/>}/>
+                <Route path='/signup' element={<SignUp/>}/>
+                <Route path="/signin" element={<SignIn/>}/>
               </Routes>
             </main>
         </BrowserRouter>
