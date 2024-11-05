@@ -8,7 +8,7 @@ const UserActivities = () => {
     useEffect(() => {
         const fetchUserActivities = async () => {
             try {
-                const response = await fetch('https://software-project-host-server.vercel.app/userActivities', { // Updated URL
+                const response = await fetch('https://host-ss-project-test-server.vercel.app/userActivities', { // Updated URL
                     method: 'GET',
                     headers: {
                         'Authorization': `Bearer ${localStorage.getItem('token')}`,

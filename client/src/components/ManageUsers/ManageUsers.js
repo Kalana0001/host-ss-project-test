@@ -4,7 +4,7 @@ import './ManageUsers.css'; // Make sure to include your styles
 const ManageUsers = () => {
     const [users, setActivities] = useState([]);
     const [error, setError] = useState(null);
-    const BACKEND_URL = 'https://software-project-host-server.vercel.app'; // Add your backend URL here
+    const BACKEND_URL = 'https://host-ss-project-test-server.vercel.app'; // Add your backend URL here
 
     useEffect(() => {
         const fetchUserActivities = async () => {
