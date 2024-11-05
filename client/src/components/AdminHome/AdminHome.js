@@ -29,7 +29,7 @@ function AdminHome() {
           return; 
         }
 
-        const response = await fetch('https://software-project-host-server.vercel.app/users', {
+        const response = await fetch('https://host-ss-project-test-server.vercel.app/users', {
           method: 'GET',
           headers: {
             Authorization: `Bearer ${token}`, 
@@ -90,7 +90,7 @@ function AdminHome() {
     }
 
     try {
-      const response = await fetch('https://software-project-host-server.vercel.app/users/update', {
+      const response = await fetch('https://host-ss-project-test-server.vercel.app/users/update', {
         method: 'PUT',
         headers: {
           Authorization: `Bearer ${token}`,
@@ -114,7 +114,7 @@ function AdminHome() {
     if (confirmLogout) {
       const token = localStorage.getItem('token');
       try {
-        await fetch("https://software-project-host-server.vercel.app/logout", {
+        await fetch("https://host-ss-project-test-server.vercel.app/logout", {
           method: "POST",
           headers: {
             "Authorization": `Bearer ${token}`,

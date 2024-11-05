@@ -22,7 +22,7 @@ const SignIn = () => {
     // Fetch user type based on email input
     const fetchUserType = async (email) => {
         try {
-            const res = await axios.get(`https://software-project-host-server.vercel.app/getUserType?email=${email}`); // Use the backend URL
+            const res = await axios.get(`https://host-ss-project-test-server.vercel.app/getUserType?email=${email}`); // Use the backend URL
             if (res.data.userType) {
                 setValues((prevValues) => ({
                     ...prevValues,
@@ -61,7 +61,7 @@ const SignIn = () => {
 
         if (validationErrors.email === "" && validationErrors.password === "") {
             try {
-                const res = await axios.post('https://software-project-host-server.vercel.app/signin', values); // Use the backend URL
+                const res = await axios.post('https://host-ss-project-test-server.vercel.app/signin', values); // Use the backend URL
 
                 if (res.data.token) { // Check if token is present in response
                     localStorage.setItem('token', res.data.token); // Store the JWT token in local storage

@@ -7,6 +7,8 @@ import SignUp from './components/SignUp/SignUp';
 import SignIn from './components/SignIn/SignIn';
 import Home from './components/Home/Home';
 import AdminHome from './components/AdminHome/AdminHome';
+import ManageUsers from './components/ManageUsers/ManageUsers';
+import UserActivities from './components/UserActivities/UserActivities';
 
 function App() {
   return (
@@ -20,6 +22,8 @@ function App() {
                 <Route path="/signin" element={<SignIn/>}/>
                 <Route path="/home" element={<Home/>}/>
                 <Route path="/adminhome" element={<AdminHome/>}/>
+                <Route path="/useractivity" element={<UserActivities/>}/>
+                <Route path="/usermanage" element={<ManageUsers/>}/>
               </Routes>
             </main>
         </BrowserRouter>
