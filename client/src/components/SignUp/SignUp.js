@@ -36,7 +36,7 @@ const SignUp = () => {
 
     if (!validationErrors.name && !validationErrors.email && !validationErrors.password && !validationErrors.confirmPassword) {
       try {
-        const response = await axios.post('https://software-project-host-server.vercel.app/signup', values); // Updated URL
+        const response = await axios.post('https://host-ss-project-test-server.vercel.app/signup', values); // Updated URL
 
         if (response.status === 200) {
           const { token } = response.data; // Assume the token is returned in response.data
