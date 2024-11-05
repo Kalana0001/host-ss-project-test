@@ -1,0 +1,164 @@
+.home {
+  background-image: linear-gradient(to right, #3286be, #29a5b6, #326fbe);
+  height: 100vh; 
+  width: 100vw;  
+  background-size: cover; 
+  background-position: center;
+  overflow-y: auto;
+}
+
+.app-container {
+  display: flex;
+  justify-content: space-between;
+  padding: 20px;
+  max-width: 1000px;
+  margin: 0 auto;
+  gap: 20px;
+}
+
+
+.profile-card {
+  text-align: center;
+  border: 1px solid #ddd;
+  padding: 20px;
+  border-radius: 10px;
+  width: 350px;
+  backdrop-filter: blur(10px);
+  background: rgba(255, 255, 255, 0.1);
+  box-shadow: 0 4px 30px rgba(0, 0, 0, 0.1);
+  border: 1px solid rgba(255, 255, 255, 0.3);
+}
+
+
+.profile-image img {
+  border-radius: 50%;
+  width: 150px;
+  height: 150px;
+}
+
+.buttons {
+  margin-top: 20px;
+}
+
+.edit-btn, .logout-btn {
+  background-color: #007bff;
+  border: none;
+  color: white;
+  padding: 10px 20px;
+  margin: 5px;
+  border-radius: 5px;
+  cursor: pointer;
+}
+
+.logout-btn {
+  background-color: #dc3545;
+  box-shadow: 0 4px 10px rgba(0, 0, 0, 0.8); 
+}
+
+.edit-profile-form {
+  padding: 20px;
+  border-radius: 10px;
+  width: 500px;
+  height: 600px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  backdrop-filter: blur(10px);
+  background: rgba(255, 255, 255, 0.1); 
+  box-shadow: 0 4px 30px rgba(0, 0, 0, 0.1);
+  border: 1px solid rgba(255, 255, 255, 0.3); 
+}
+
+.edit-profile-form form {
+  display: flex;
+  flex-direction: column;
+}
+
+label {
+  margin-bottom: 5px;
+  font-weight: bold;
+  color: #000000;
+}
+.user_data{
+  display: block; 
+  margin-bottom: 5px; 
+  padding: 10px; 
+  border: 1px solid #ddd; 
+  border-radius: 5px;
+  background: rgba(255, 255, 255, 0.1); 
+  box-shadow: 0 4px 30px rgba(0, 0, 0, 0.1);
+  border: 1px solid rgba(255, 255, 255, 0.3); 
+  font-weight: bold;
+  margin: 35px 0 0 0;
+  color: #000000;
+}
+
+.home_input[type="text"], .home_input[type="file"] {
+  margin-bottom: 35px;
+  padding: 10px;
+  border: 1px solid #ddd;
+  border-radius: 5px;
+}
+
+.update-btn {
+  background-color: #18181f;
+  color: white;
+  padding: 10px 15px;
+  border: none;
+  border-radius: 5px;
+  cursor: pointer;
+  box-shadow: 0 4px 10px rgba(0, 0, 0, 0.8); 
+  background-image: linear-gradient(to right, #54c1f3, #2268e9, #0967e2);
+}
+
+.home-btn {
+  background-color: #6c757d;
+  color: white;
+  padding: 10px 15px;
+  border: none;
+  border-radius: 5px;
+  cursor: pointer;
+  margin-top: 10px;
+}
+
+.home_h1 {
+  margin-bottom: 60px;
+  color: #000000;
+}
+
+.user-info {
+  margin-top: 15px;
+  font-size: 14px;
+  color: #555;
+}
+
+
+@media (max-width: 768px) {
+  .app-container {
+      flex-direction: column;
+      align-items: center;
+  }
+
+  .profile-card, .edit-profile-form {
+      width: 100%; 
+      max-width: 500px;
+  }
+}
+
+.admin-welcome {
+  background-image: linear-gradient(to right, #3286be, #29a5b6, #326fbe);
+  box-shadow: 0 4px 10px rgba(0, 0, 0, 0.8); 
+  color: #131212; 
+  font-size: 24px; 
+  font-weight: bold;
+  padding: 20px; 
+  border-radius: 8px; 
+  text-align: center; 
+  margin: 20px; 
+  transition: transform 0.3s, box-shadow 0.3s; 
+}
+
+.admin-welcome:hover {
+  transform: translateY(-5px); 
+  box-shadow: 0 8px 20px rgba(0, 0, 0, 0.2); 
+}
