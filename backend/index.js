@@ -199,7 +199,7 @@ app.get("/test-db", async (req, res) => {
 });
 
 // Start server
-const PORT = process.env.PORT || 8087; // Use PORT from environment variables or default to 8087
+const PORT = process.env.PORT || 8089; // Use PORT from environment variables or default to 8087
 app.listen(PORT, () => {
     console.log(`Server is running on port ${PORT}`);
 });
