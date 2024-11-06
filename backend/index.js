@@ -4,8 +4,7 @@ const cors = require("cors");
 const bodyParser = require("body-parser");
 const jwt = require("jsonwebtoken");
 require('dotenv').config();
-const bcrypt = require('bcrypt');
-
+const bcrypt = require("bcrypt");
 const app = express();
 
 // Allow any origin in CORS
@@ -67,17 +66,19 @@ app.post("/signup", async (req, res) => {
     const sql = "INSERT INTO signs (name, email, password, userType) VALUES (?, ?, ?, ?)";
 
     try {
-        // Assuming the password is stored as plain text; you may want to hash it or apply other security measures.
-        const values = [name, email, password, userType];
+        // Hash the password before storing it
+        const hashedPassword = await bcrypt.hash(password, 10); // 10 is the salt rounds, which determines the hashing complexity
 
+        // Insert the user with the hashed password
+        const values = [name, email, hashedPassword, userType];
         await db.query(sql, values);
+        
         res.json("User Registered Successfully");
     } catch (err) {
         console.error("Error in /signup:", err);
         res.status(500).json("Error registering user");
     }
 });
-
 // Sign-in route (login)
 app.post("/signin", async (req, res) => {
     const { email, password } = req.body;
@@ -85,11 +86,13 @@ app.post("/signin", async (req, res) => {
 
     try {
         const [data] = await db.query(sql, [email]);
-        
+
         if (data.length > 0) {
             const user = data[0];
-            // Assuming passwords are stored in plain text; please implement a secure password handling mechanism.
-            if (password !== user.password) {
+
+            // Compare the password using bcrypt
+            const passwordMatch = await bcrypt.compare(password, user.password);
+            if (!passwordMatch) {
                 await logAction(user.id, "Login Failed");
                 return res.status(401).json("Login Failed");
             }
