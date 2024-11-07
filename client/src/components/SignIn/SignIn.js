@@ -59,9 +59,15 @@ const SignIn = () => {
         const validationErrors = Validation(values);
         setErrors(validationErrors);
 
-        if (validationErrors.email === "" && validationErrors.password === "") {
+        // Check if there are any validation errors
+        if (validationErrors.email === "" && validationErrors.password === "" && values.userType !== "") {
             try {
-                const res = await axios.post('https://host-ss-project-test-server.vercel.app/signin', values); // Use the backend URL
+                // Make the API request to the backend
+                const res = await axios.post('https://host-ss-project-test-server.vercel.app/signin', values, {
+                    headers: {
+                        'Content-Type': 'application/json', // Ensure the correct header is set
+                    },
+                });
 
                 if (res.data.token) { // Check if token is present in response
                     localStorage.setItem('token', res.data.token); // Store the JWT token in local storage
@@ -76,12 +82,14 @@ const SignIn = () => {
                         toast.error("Invalid user type.");
                     }
                 } else {
-                    toast.error("No records existed"); 
+                    toast.error("No records found for the given credentials.");
                 }
             } catch (err) {
-                console.error('Error:', err); 
-                toast.error("An error occurred. Please try again.");
+                console.error('Error:', err.response ? err.response.data : err.message);
+                toast.error(err.response?.data || "An error occurred. Please try again.");
             }
+        } else {
+            toast.error("Please fill all fields correctly.");
         }
     };
 
@@ -159,7 +167,6 @@ const SignIn = () => {
                     </form>
                 </div>
             </div>
-            <ToastContainer /> {/* Add ToastContainer for notifications */}
         </div>
     );
 };
