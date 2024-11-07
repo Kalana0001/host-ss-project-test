@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useCallback } from 'react';
+import React, { useState, useEffect } from 'react';
 import './SignIn.css';
 import background from '../../assets/bg.svg';
 import avatar from '../../assets/avatar.svg';
@@ -7,7 +7,6 @@ import { ToastContainer, toast } from 'react-toastify';
 import 'react-toastify/dist/ReactToastify.css'; 
 import { useNavigate } from 'react-router-dom'; 
 import axios from 'axios'; 
-import { debounce } from 'lodash';
 import Validation from '../Validation/LoginValidation'; // Import the validation function
 
 const SignIn = () => {
@@ -41,14 +40,6 @@ const SignIn = () => {
         }
     };
 
-    // Debounced function to fetch user type
-    const debounceFetchUserType = useCallback(
-        debounce(async (email) => {
-            await fetchUserType(email);
-        }, 500),
-        []
-    );
-
     const handleChange = (e) => {
         const { name, value } = e.target;
         setValues({
@@ -58,19 +49,17 @@ const SignIn = () => {
 
         // Fetch user type when email changes
         if (name === 'email') {
-            debounceFetchUserType(value);
+            fetchUserType(value);
         }
     };
 
     const handleSubmit = async (event) => {
         event.preventDefault();
 
-        // Perform validation
         const validationErrors = Validation(values);
         setErrors(validationErrors);
 
-        // If there are no validation errors, proceed with the form submission
-        if (validationErrors.email === "" && validationErrors.password === "" && validationErrors.userType === "") {
+        if (validationErrors.email === "" && validationErrors.password === "") {
             try {
                 const res = await axios.post('https://host-ss-project-test-server.vercel.app/signin', values); // Use the backend URL
 
@@ -87,10 +76,10 @@ const SignIn = () => {
                         toast.error("Invalid user type.");
                     }
                 } else {
-                    toast.error("No records found."); 
+                    toast.error("No records existed"); 
                 }
             } catch (err) {
-                console.error('Error:', err.response ? err.response.data : err.message); 
+                console.error('Error:', err); 
                 toast.error("An error occurred. Please try again.");
             }
         }
