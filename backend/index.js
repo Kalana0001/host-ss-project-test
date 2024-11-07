@@ -9,7 +9,7 @@ const app = express();
 
 // Allow any origin in CORS
 app.use(cors({
-    origin: '*', // Allow all origins
+    origin: 'https://www.authwarpper.me' // Only allow this specific domain
 }));
 app.use(express.json());
 app.use(bodyParser.urlencoded({ extended: true }));
