@@ -17,7 +17,7 @@ function Home() {
   });
 
   const navigate = useNavigate(); 
-  const BACKEND_URL = 'https://host-ss-project-test-server.vercel.app.app'; // Add your backend URL here
+  const BACKEND_URL = 'https://host-ss-project-test-server.vercel.app'; // Add your backend URL here
 
   useEffect(() => {
     // Fetch user data from the API
