@@ -3,10 +3,10 @@ import './SignUp.css';
 import background from '../../assets/bg.svg';
 import avatar from '../../assets/avatar.svg';
 import wave from '../../assets/wave.png';
-import { ToastContainer, toast } from 'react-toastify'; 
-import 'react-toastify/dist/ReactToastify.css'; 
-import { useNavigate } from 'react-router-dom'; 
-import axios from 'axios'; 
+import { ToastContainer, toast } from 'react-toastify';
+import 'react-toastify/dist/ReactToastify.css';
+import { useNavigate } from 'react-router-dom';
+import axios from 'axios';
 import validateForm from '../Validation/SignUpValidation'; 
 
 const SignUp = () => {
@@ -15,7 +15,7 @@ const SignUp = () => {
     email: '',
     password: '',
     confirmPassword: '',
-    userType: 'user', // Default value
+    userType: 'user', // Default user type
   });
   
   const [errors, setErrors] = useState({});
@@ -31,9 +31,11 @@ const SignUp = () => {
   const handleSubmit = async (e) => {
     e.preventDefault();
 
+    // Validate form input
     const validationErrors = validateForm(values);
     setErrors(validationErrors);
 
+    // Proceed if no validation errors
     if (!validationErrors.name && !validationErrors.email && !validationErrors.password && !validationErrors.confirmPassword) {
       try {
         const response = await axios.post('https://host-ss-project-test-server.vercel.app/signup', values); // Updated URL
@@ -43,8 +45,9 @@ const SignUp = () => {
           
           // Store the token in localStorage (or sessionStorage)
           localStorage.setItem('token', token);
-          toast.success('Signup successful!');
+          toast.success('Signup successful! Please check your email for verification.');
           
+          // Reset form values
           setValues({
             name: '',
             email: '',
@@ -52,12 +55,15 @@ const SignUp = () => {
             confirmPassword: '',
             userType: 'user', // Reset to default value
           });
-          navigate('/signin');
+
+          // Redirect to the verification page
+          navigate('/verification'); // Navigate to the verification page
         } else {
           setErrors({ general: 'Signup failed. Please try again.' });
         }
       } catch (error) {
         console.error('Error:', error);
+        // Handle different error responses
         if (error.response && error.response.status === 400) {
           setErrors({ general: 'Invalid input data.' });
         } else if (error.response && error.response.status === 409) {
@@ -83,6 +89,7 @@ const SignUp = () => {
             <img src={avatar} alt="avatar" />
             <h2 className="title">Welcome</h2>
 
+            {/* Display general error message */}
             {errors.general && <p className="error-message">{errors.general}</p>}
 
             <div className="input-div one">
