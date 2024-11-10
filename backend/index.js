@@ -4,7 +4,6 @@ const cors = require("cors");
 const bodyParser = require("body-parser");
 const jwt = require("jsonwebtoken");
 require('dotenv').config();
-const nodemailer = require("nodemailer"); // Add nodemailer for email functionality
 const bcrypt = require("bcrypt");
 const app = express();
 
@@ -64,76 +63,22 @@ async function logAction(userId, action) {
 // Signup route
 app.post("/signup", async (req, res) => {
     const { name, email, password, userType } = req.body;
+    const sql = "INSERT INTO signs (name, email, password, userType) VALUES (?, ?, ?, ?)";
 
     try {
         // Hash the password before storing it
-        const hashedPassword = await bcrypt.hash(password, 10);
+        const hashedPassword = await bcrypt.hash(password, 10); // 10 is the salt rounds, which determines the hashing complexity
 
-        // Generate a verification token (you can store it in your database)
-        const verificationToken = jwt.sign({ email: email }, process.env.JWT_SECRET, { expiresIn: '1h' });
-
-        // Insert the user with the hashed password and verification token
-        const sql = "INSERT INTO signs (name, email, password, userType, verification_token) VALUES (?, ?, ?, ?, ?)";
-        const values = [name, email, hashedPassword, userType, verificationToken];
-        const [result] = await db.query(sql, values);
-
-        // Create transporter for sending emails
-        const transporter = nodemailer.createTransport({
-            service: 'gmail',
-            auth: {
-                user: process.env.EMAIL_USER,
-                pass: process.env.EMAIL_PASS, // Add the email password to the .env file
-            },
-        });
-
-        // Send verification email
-        const mailOptions = {
-            from: process.env.EMAIL_USER,
-            to: email,
-            subject: 'Please verify your email address',
-            html: `
-                <p>Hi ${name},</p>
-                <p>Thank you for registering with us. Please verify your email by clicking the link below:</p>
-                <a href="${process.env.FRONTEND_URL}/verify-email?token=${verificationToken}">Verify Email</a>
-                <p>This link will expire in 1 hour.</p>
-                <p>If you did not register, please ignore this email.</p>
-            `,
-        };
-
-        // Send the email
-        transporter.sendMail(mailOptions, (error, info) => {
-            if (error) {
-                console.error("Error sending email:", error);
-                return res.status(500).json("Error sending verification email");
-            }
-
-            res.json("User registered successfully. Please check your email for verification.");
-        });
+        // Insert the user with the hashed password
+        const values = [name, email, hashedPassword, userType];
+        await db.query(sql, values);
+        
+        res.json("User Registered Successfully");
     } catch (err) {
         console.error("Error in /signup:", err);
         res.status(500).json("Error registering user");
     }
 });
-
-// Email verification route
-app.post("/verify", async (req, res) => {
-    const { token } = req.body;
-
-    try {
-        // Verify the token
-        const decoded = jwt.verify(token, process.env.JWT_SECRET);
-
-        // Optionally, update the user record to set them as 'verified'
-        const sql = "UPDATE signs SET verified = true WHERE email = ?";
-        await db.query(sql, [decoded.email]);
-
-        res.json("Email verified successfully!");
-    } catch (err) {
-        console.error("Error verifying email:", err);
-        res.status(400).json("Invalid or expired token");
-    }
-});
-
 // Sign-in route (login)
 app.post("/signin", async (req, res) => {
     const { email, password } = req.body;

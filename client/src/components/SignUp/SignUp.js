@@ -3,11 +3,11 @@ import './SignUp.css';
 import background from '../../assets/bg.svg';
 import avatar from '../../assets/avatar.svg';
 import wave from '../../assets/wave.png';
-import { ToastContainer, toast } from 'react-toastify';
-import 'react-toastify/dist/ReactToastify.css';
-import { useNavigate } from 'react-router-dom';
-import axios from 'axios';
-import validateForm from '../Validation/SignUpValidation';
+import { ToastContainer, toast } from 'react-toastify'; 
+import 'react-toastify/dist/ReactToastify.css'; 
+import { useNavigate } from 'react-router-dom'; 
+import axios from 'axios'; 
+import validateForm from '../Validation/SignUpValidation'; 
 
 const SignUp = () => {
   const [values, setValues] = useState({
@@ -17,9 +17,9 @@ const SignUp = () => {
     confirmPassword: '',
     userType: 'user', // Default value
   });
-
+  
   const [errors, setErrors] = useState({});
-  const navigate = useNavigate();
+  const navigate = useNavigate(); 
 
   const handleChange = (e) => {
     setValues({
@@ -36,13 +36,15 @@ const SignUp = () => {
 
     if (!validationErrors.name && !validationErrors.email && !validationErrors.password && !validationErrors.confirmPassword) {
       try {
-        const response = await axios.post('https://host-ss-project-test-server.vercel.app/signup', values);
+        const response = await axios.post('https://host-ss-project-test-server.vercel.app/signup', values); // Updated URL
 
         if (response.status === 200) {
-          const { token } = response.data;
+          const { token } = response.data; // Assume the token is returned in response.data
+          
+          // Store the token in localStorage (or sessionStorage)
           localStorage.setItem('token', token);
-          toast.success('Signup successful! Please check your email for verification.');
-
+          toast.success('Signup successful!');
+          
           setValues({
             name: '',
             email: '',
@@ -50,9 +52,7 @@ const SignUp = () => {
             confirmPassword: '',
             userType: 'user', // Reset to default value
           });
-
-          // Navigate to the verify page
-          navigate('/verify');
+          navigate('/signin');
         } else {
           setErrors({ general: 'Signup failed. Please try again.' });
         }
@@ -65,10 +65,8 @@ const SignUp = () => {
         } else {
           setErrors({ general: 'An error occurred. Please try again later.' });
         }
-        toast.error(errors.general || 'An error occurred. Please try again later.');
+        toast.error('An error occurred. Please try again later.');
       }
-    } else {
-      toast.error("Please correct the errors in the form.");
     }
   };
 
