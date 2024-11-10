@@ -4,6 +4,7 @@ const cors = require("cors");
 const bodyParser = require("body-parser");
 const jwt = require("jsonwebtoken");
 require('dotenv').config();
+const nodemailer = require("nodemailer"); // Add nodemailer for email functionality
 const bcrypt = require("bcrypt");
 const app = express();
 
@@ -75,7 +76,16 @@ app.post("/signup", async (req, res) => {
         const sql = "INSERT INTO signs (name, email, password, userType, verification_token) VALUES (?, ?, ?, ?, ?)";
         const values = [name, email, hashedPassword, userType, verificationToken];
         const [result] = await db.query(sql, values);
-        
+
+        // Create transporter for sending emails
+        const transporter = nodemailer.createTransport({
+            service: 'gmail',
+            auth: {
+                user: process.env.EMAIL_USER,
+                pass: process.env.EMAIL_PASS, // Add the email password to the .env file
+            },
+        });
+
         // Send verification email
         const mailOptions = {
             from: process.env.EMAIL_USER,
@@ -87,7 +97,7 @@ app.post("/signup", async (req, res) => {
                 <a href="${process.env.FRONTEND_URL}/verify-email?token=${verificationToken}">Verify Email</a>
                 <p>This link will expire in 1 hour.</p>
                 <p>If you did not register, please ignore this email.</p>
-            `
+            `,
         };
 
         // Send the email
@@ -123,6 +133,7 @@ app.post("/verify", async (req, res) => {
         res.status(400).json("Invalid or expired token");
     }
 });
+
 // Sign-in route (login)
 app.post("/signin", async (req, res) => {
     const { email, password } = req.body;
