@@ -8,7 +8,10 @@ const nodemailer = require("nodemailer"); // Ensure nodemailer is required
 
 const app = express();
 
-app.use(cors({ origin: 'https://www.authwarpper.me' })); // Allow all origins
+const corsOptions = {
+    origin: 'https://www.authwarpper.me', // Allow only your frontend domain
+    methods: ['POST', 'GET'], // Specify allowed HTTP methods
+  };
 app.use(express.json());
 app.use(express.urlencoded({ extended: true })); // Use express's urlencoded
 
