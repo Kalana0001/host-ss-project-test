@@ -3,11 +3,11 @@ import './SignUp.css';
 import background from '../../assets/bg.svg';
 import avatar from '../../assets/avatar.svg';
 import wave from '../../assets/wave.png';
-import { ToastContainer, toast } from 'react-toastify';
-import 'react-toastify/dist/ReactToastify.css';
-import { useNavigate } from 'react-router-dom';
-import axios from 'axios';
-import validateForm from '../Validation/SignUpValidation';
+import { ToastContainer, toast } from 'react-toastify'; 
+import 'react-toastify/dist/ReactToastify.css'; 
+import { useNavigate } from 'react-router-dom'; 
+import axios from 'axios'; 
+import validateForm from '../Validation/SignUpValidation'; 
 
 const SignUp = () => {
   const [values, setValues] = useState({
@@ -15,11 +15,11 @@ const SignUp = () => {
     email: '',
     password: '',
     confirmPassword: '',
-    userType: 'user',
+    userType: 'user', // Default value
   });
 
   const [errors, setErrors] = useState({});
-  const navigate = useNavigate();
+  const navigate = useNavigate(); 
 
   const handleChange = (e) => {
     setValues({
@@ -34,23 +34,23 @@ const SignUp = () => {
     const validationErrors = validateForm(values);
     setErrors(validationErrors);
 
-    const noErrors = Object.keys(validationErrors).length === 0;
-
-    if (noErrors) {
+    if (!validationErrors.name && !validationErrors.email && !validationErrors.password && !validationErrors.confirmPassword) {
       try {
-        const response = await axios.post('https://software-project-host-server.vercel.app/signup', values);
+        const response = await axios.post('http://host-ss-project-test-server.vercel.app/signup', values);
 
         if (response.status === 200) {
+          // If signup is successful, notify the user to check their email for verification
           toast.success('Signup successful! Please check your email to verify your account.');
-          navigate('/verifyemail');
+          
+          // Navigate to verification page
+          navigate('/verifyemail'); 
 
-          // Reset form values on successful signup
           setValues({
             name: '',
             email: '',
             password: '',
             confirmPassword: '',
-            userType: 'user',
+            userType: 'user', // Reset to default value
           });
         } else {
           setErrors({ general: 'Signup failed. Please try again.' });
@@ -71,15 +71,15 @@ const SignUp = () => {
 
   return (
     <div className="signup-page">
-      <img className="wave" src={wave} alt="Decorative wave" />
+      <img className="wave" src={wave} alt="wave" />
       <div className="container">
         <div className="img">
           <h1 className="title1">SIGN UP</h1>
-          <img src={background} alt="Background illustration" />
+          <img src={background} alt="background" />
         </div>
         <div className="login-content">
           <form onSubmit={handleSubmit}>
-            <img src={avatar} alt="User avatar" />
+            <img src={avatar} alt="avatar" />
             <h2 className="title">Welcome</h2>
 
             {errors.general && <p className="error-message">{errors.general}</p>}
@@ -89,14 +89,13 @@ const SignUp = () => {
                 <i className="fas fa-user"></i>
               </div>
               <div className="div">
-                <input
-                  type="text"
-                  className="input"
-                  placeholder="Name"
+                <input 
+                  type="text" 
+                  className="input" 
+                  placeholder='Name'
                   name="name"
                   value={values.name}
-                  onChange={handleChange}
-                  aria-label="Name"
+                  onChange={handleChange} 
                 />
                 {errors.name && <p className="error-message">{errors.name}</p>}
               </div>
@@ -107,14 +106,13 @@ const SignUp = () => {
                 <i className="fas fa-envelope"></i>
               </div>
               <div className="div">
-                <input
-                  type="email"
-                  className="input"
-                  placeholder="Email"
+                <input 
+                  type="email" 
+                  className="input" 
+                  placeholder='Email'
                   name="email"
                   value={values.email}
-                  onChange={handleChange}
-                  aria-label="Email"
+                  onChange={handleChange} 
                 />
                 {errors.email && <p className="error-message">{errors.email}</p>}
               </div>
@@ -125,14 +123,13 @@ const SignUp = () => {
                 <i className="fas fa-lock"></i>
               </div>
               <div className="div">
-                <input
-                  type="password"
-                  className="input"
-                  placeholder="Password"
+                <input 
+                  type="password" 
+                  className="input" 
+                  placeholder='Password'
                   name="password"
                   value={values.password}
-                  onChange={handleChange}
-                  aria-label="Password"
+                  onChange={handleChange} 
                 />
                 {errors.password && <p className="error-message">{errors.password}</p>}
               </div>
@@ -143,30 +140,29 @@ const SignUp = () => {
                 <i className="fas fa-lock"></i>
               </div>
               <div className="div">
-                <input
-                  type="password"
-                  className="input"
-                  placeholder="Confirm Password"
+                <input 
+                  type="password" 
+                  className="input" 
+                  placeholder='Confirm Password'
                   name="confirmPassword"
                   value={values.confirmPassword}
-                  onChange={handleChange}
-                  aria-label="Confirm Password"
+                  onChange={handleChange} 
                 />
                 {errors.confirmPassword && <p className="error-message">{errors.confirmPassword}</p>}
               </div>
             </div>
 
+            {/* Dropdown for user type */}
             <div className="input-div user-type">
               <div className="i">
                 <i className="fas fa-user-circle"></i>
               </div>
               <div className="div">
-                <select
-                  className="input"
+                <select 
+                  className="input" 
                   name="userType"
                   value={values.userType}
                   onChange={handleChange}
-                  aria-label="User type"
                 >
                   <option value="user">User</option>
                   <option value="admin">Admin</option>
@@ -176,7 +172,7 @@ const SignUp = () => {
 
             <a href="#">Forgot Password?</a>
             <input type="submit" className="btn" value="Sign Up" />
-            <a href="/signin" className="abtn">SIGN IN</a>
+            <a href='/signin' className="abtn">SIGN IN</a>
             <p>Already Have An Account?</p>
           </form>
         </div>
