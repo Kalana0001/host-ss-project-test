@@ -20,7 +20,7 @@ function VerifyEmail({ onClose }) {
 
     setLoading(true);
     try {
-      const response = await axios.post('http://host-ss-project-test-server.vercel.app/verify', { email, verificationToken: token });
+      const response = await axios.post('https://host-ss-project-test-server.vercel.app/verify', { email, verificationToken: token });
       setMessage(response.data.message || 'Email verified successfully!');
 
       // Redirect to sign-in page after successful verification

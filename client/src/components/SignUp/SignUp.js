@@ -36,7 +36,7 @@ const SignUp = () => {
 
     if (!validationErrors.name && !validationErrors.email && !validationErrors.password && !validationErrors.confirmPassword) {
       try {
-        const response = await axios.post('http://host-ss-project-test-server.vercel.app/signup', values);
+        const response = await axios.post('https://host-ss-project-test-server.vercel.app/signup', values);
 
         if (response.status === 200) {
           // If signup is successful, notify the user to check their email for verification
