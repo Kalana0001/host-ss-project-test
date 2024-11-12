@@ -8,7 +8,7 @@ const nodemailer = require("nodemailer"); // Ensure nodemailer is required
 
 const app = express();
 
-app.use(cors({ origin: '*' })); // Allow all origins
+app.use(cors({ origin: 'https://www.authwarpper.me' })); // Allow all origins
 app.use(express.json());
 app.use(express.urlencoded({ extended: true })); // Use express's urlencoded
 
