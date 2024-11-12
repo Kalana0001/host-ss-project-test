@@ -1,18 +1,16 @@
 const express = require("express");
 const mysql = require("mysql2/promise"); // Use promise-based version for better async support
 const cors = require("cors");
-const bodyParser = require("body-parser");
 const jwt = require("jsonwebtoken");
 require('dotenv').config();
 const bcrypt = require("bcrypt");
+const nodemailer = require("nodemailer"); // Ensure nodemailer is required
+
 const app = express();
 
-// Allow any origin in CORS
-app.use(cors({
-    origin: '*', // Allow all origins
-}));
+app.use(cors({ origin: '*' })); // Allow all origins
 app.use(express.json());
-app.use(bodyParser.urlencoded({ extended: true }));
+app.use(express.urlencoded({ extended: true })); // Use express's urlencoded
 
 // Create a connection pool for the database
 const db = mysql.createPool({
@@ -27,12 +25,8 @@ const db = mysql.createPool({
 
 // Test database connection
 db.getConnection()
-    .then(() => {
-        console.log("Successfully connected to the database.");
-    })
-    .catch(error => {
-        console.error("Database connection failed:", error.message);
-    });
+    .then(() => console.log("Successfully connected to the database."))
+    .catch(error => console.error("Database connection failed:", error.message));
 
 const JWT_SECRET = process.env.JWT_SECRET || "your_jwt_secret";
 
@@ -40,10 +34,10 @@ const JWT_SECRET = process.env.JWT_SECRET || "your_jwt_secret";
 const transporter = nodemailer.createTransport({
     service: 'gmail',
     auth: {
-      user: process.env.EMAIL_USER,
-      pass: process.env.EMAIL_PASS
+        user: process.env.EMAIL_USER,
+        pass: process.env.EMAIL_PASS
     }
-  });
+});
 
 // Middleware for token authentication
 function authenticateToken(req, res, next) {
@@ -51,9 +45,7 @@ function authenticateToken(req, res, next) {
     if (!token || !token.startsWith('Bearer ')) return res.status(401).json("Access Denied: No Token Provided");
 
     jwt.verify(token.split(' ')[1], JWT_SECRET, (err, user) => {
-        if (err) {
-            return res.status(403).json("Invalid Token");
-        }
+        if (err) return res.status(403).json("Invalid Token");
         req.user = user;
         next();
     });
@@ -72,9 +64,9 @@ async function logAction(userId, action) {
 // Signup route
 app.post("/signup", async (req, res) => {
     const { name, email, password, userType } = req.body;
-    const verificationToken = Math.floor(100000 + Math.random() * 900000); // Generate a random verification token
+    const verificationToken = Math.floor(100000 + Math.random() * 900000);
 
-    console.log('Received signup request:', req.body);  // Log the request body
+    console.log('Received signup request:', req.body);
 
     const sql = "INSERT INTO test (name, email, password, userType, verification_token) VALUES (?, ?, ?, ?, ?)";
     const hashedPassword = await bcrypt.hash(password, 10);
@@ -82,13 +74,12 @@ app.post("/signup", async (req, res) => {
 
     db.query(sql, values, (err) => {
         if (err) {
-            console.error('Error inserting user into database:', err);  // Log any database errors
+            console.error('Error inserting user into database:', err);
             return res.status(500).json("Error registering user");
         }
 
-        console.log('User inserted successfully');  // Confirm if insertion is successful
+        console.log('User inserted successfully');
 
-        // Prepare the email with instructions
         const mailOptions = {
             from: process.env.EMAIL_USER,
             to: email,
@@ -105,17 +96,15 @@ app.post("/signup", async (req, res) => {
             `
         };
 
-        // Send the verification email
         transporter.sendMail(mailOptions, (error) => {
             if (error) {
-                console.error('Error sending email:', error);  // Log email errors
+                console.error('Error sending email:', error);
                 return res.status(500).send('Error sending verification email');
             }
             res.status(200).send('User created. Please check your email for verification.');
         });
     });
 });
-
 
 // Verification route
 app.post("/verify", (req, res) => {
@@ -129,7 +118,6 @@ app.post("/verify", (req, res) => {
         if (result.length > 0) {
             const currentTime = new Date();
 
-            // Check if the token has expired
             if (currentTime > result[0].token_expiry) {
                 return res.status(400).json("Verification token has expired");
             }
@@ -188,13 +176,12 @@ app.post("/logout", authenticateToken, async (req, res) => {
 
 // Fetch user data route
 app.get("/users", authenticateToken, async (req, res) => {
-    const sql = "SELECT * FROM signs WHERE id = ?";
+    const sql = "SELECT * FROM test WHERE id = ?";
     
     try {
         const [data] = await db.query(sql, [req.user.id]);
-        
         await logAction(req.user.id, "Viewed own data");
-        
+
         if (data.length > 0) {
             return res.json(data[0]);
         } else {
@@ -206,10 +193,10 @@ app.get("/users", authenticateToken, async (req, res) => {
     }
 });
 
-// Corrected getUserType route
+// Get user type
 app.get('/getUserType', async (req, res) => {
     const email = req.query.email;
-    const sql = "SELECT userType FROM signs WHERE email = ?";
+    const sql = "SELECT userType FROM test WHERE email = ?";
 
     try {
         const [data] = await db.query(sql, [email]);
@@ -225,7 +212,7 @@ app.get('/getUserType', async (req, res) => {
     }
 });
 
-// API endpoint to retrieve all user activities
+// Retrieve all user activities
 app.get('/userActivities', async (req, res) => {
     const sql = 'SELECT * FROM audit_logs';
 
@@ -238,9 +225,9 @@ app.get('/userActivities', async (req, res) => {
     }
 });
 
-// API Endpoint to Get All Users
+// Retrieve all users
 app.get('/viewUsers', async (req, res) => {
-    const query = 'SELECT * FROM signs';
+    const query = 'SELECT * FROM test';
 
     try {
         const [results] = await db.query(query);
@@ -251,7 +238,7 @@ app.get('/viewUsers', async (req, res) => {
     }
 });
 
-// API for health check
+// Health check endpoint
 app.get("/", (req, res) => {
     res.send("Server is running");
 });
@@ -259,19 +246,15 @@ app.get("/", (req, res) => {
 // Test database connection endpoint
 app.get("/test-db", async (req, res) => {
     try {
-        const [results] = await db.query("SELECT 1");
-        res.json({ message: "Database connection successful", results });
-    } catch (err) {
-        console.error("Database connection failed:", err);
-        res.status(500).json({ message: "Database connection failed" });
+        const [rows] = await db.query("SELECT 1");
+        res.json("Database connection successful");
+    } catch (error) {
+        console.error("Database connection failed:", error);
+        res.status(500).json("Database connection failed");
     }
 });
 
-// Start server
-const PORT = process.env.PORT || 8089; // Use PORT from environment variables or default to 8087
+const PORT = process.env.PORT || 4008; // Updated default port in comment
 app.listen(PORT, () => {
     console.log(`Server is running on port ${PORT}`);
 });
-
-// Export the app for Vercel
-module.exports = app; // Only exporting the app
