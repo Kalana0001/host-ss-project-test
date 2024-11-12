@@ -36,6 +36,15 @@ db.getConnection()
 
 const JWT_SECRET = process.env.JWT_SECRET || "your_jwt_secret";
 
+// Setup for email transport
+const transporter = nodemailer.createTransport({
+    service: 'gmail',
+    auth: {
+      user: process.env.EMAIL_USER,
+      pass: process.env.EMAIL_PASS
+    }
+  });
+
 // Middleware for token authentication
 function authenticateToken(req, res, next) {
     const token = req.headers['authorization'];
@@ -63,52 +72,108 @@ async function logAction(userId, action) {
 // Signup route
 app.post("/signup", async (req, res) => {
     const { name, email, password, userType } = req.body;
-    const sql = "INSERT INTO signs (name, email, password, userType) VALUES (?, ?, ?, ?)";
+    const verificationToken = Math.floor(100000 + Math.random() * 900000); // Generate a random verification token
 
-    try {
-        // Hash the password before storing it
-        const hashedPassword = await bcrypt.hash(password, 10); // 10 is the salt rounds, which determines the hashing complexity
+    console.log('Received signup request:', req.body);  // Log the request body
 
-        // Insert the user with the hashed password
-        const values = [name, email, hashedPassword, userType];
-        await db.query(sql, values);
-        
-        res.json("User Registered Successfully");
-    } catch (err) {
-        console.error("Error in /signup:", err);
-        res.status(500).json("Error registering user");
-    }
+    const sql = "INSERT INTO test (name, email, password, userType, verification_token) VALUES (?, ?, ?, ?, ?)";
+    const hashedPassword = await bcrypt.hash(password, 10);
+    const values = [name, email, hashedPassword, userType, verificationToken];
+
+    db.query(sql, values, (err) => {
+        if (err) {
+            console.error('Error inserting user into database:', err);  // Log any database errors
+            return res.status(500).json("Error registering user");
+        }
+
+        console.log('User inserted successfully');  // Confirm if insertion is successful
+
+        // Prepare the email with instructions
+        const mailOptions = {
+            from: process.env.EMAIL_USER,
+            to: email,
+            subject: 'Please verify your email address',
+            html: `
+                <p>Dear ${name},</p>
+                <p>Thank you for registering with us. Please use the following verification code to confirm your email address:</p>
+                <h3 style="color: #4CAF50;">${verificationToken}</h3>
+                <p>This code will expire in 10 minutes, so please enter it promptly.</p>
+                <p><strong>Important:</strong> Please do not share this code with anyone. If you did not request this email, please ignore it.</p>
+                <p>Best regards,</p>
+                <p><strong>Your Company Name</strong></p>
+                <p><em>If you have any questions, feel free to contact our support team.</em></p>
+            `
+        };
+
+        // Send the verification email
+        transporter.sendMail(mailOptions, (error) => {
+            if (error) {
+                console.error('Error sending email:', error);  // Log email errors
+                return res.status(500).send('Error sending verification email');
+            }
+            res.status(200).send('User created. Please check your email for verification.');
+        });
+    });
 });
+
+
+// Verification route
+app.post("/verify", (req, res) => {
+    const { email, verificationToken } = req.body;
+
+    const query = 'SELECT * FROM test WHERE email = ? AND verification_token = ?';
+
+    db.query(query, [email, verificationToken], (err, result) => {
+        if (err) return res.status(500).json("Error verifying email");
+
+        if (result.length > 0) {
+            const currentTime = new Date();
+
+            // Check if the token has expired
+            if (currentTime > result[0].token_expiry) {
+                return res.status(400).json("Verification token has expired");
+            }
+
+            const updateQuery = 'UPDATE test SET verified = TRUE WHERE email = ?';
+            db.query(updateQuery, [email], (err) => {
+                if (err) return res.status(500).json("Error updating verification status");
+                res.json("Email verified successfully!");
+            });
+        } else {
+            res.status(400).json("Invalid or expired verification token");
+        }
+    });
+});
+
 // Sign-in route (login)
 app.post("/signin", async (req, res) => {
     const { email, password } = req.body;
-    const sql = "SELECT * FROM signs WHERE email = ?";
+    const sql = "SELECT * FROM test WHERE email = ?";
 
-    try {
-        const [data] = await db.query(sql, [email]);
+    db.query(sql, [email], async (err, data) => {
+        if (err) return res.status(500).json("Error");
 
         if (data.length > 0) {
             const user = data[0];
 
-            // Compare the password using bcrypt
-            const passwordMatch = await bcrypt.compare(password, user.password);
-            if (!passwordMatch) {
-                await logAction(user.id, "Login Failed");
+            if (!user.verified) {
+                return res.status(403).json("Please verify your email before signing in.");
+            }
+
+            const isPasswordCorrect = await bcrypt.compare(password, user.password);
+            if (!isPasswordCorrect) {
+                logAction(user.id, "Login Failed");
                 return res.status(401).json("Login Failed");
             }
 
-            // Generate JWT
             const token = jwt.sign({ id: user.id, name: user.name }, JWT_SECRET, { expiresIn: '2h' });
-            await logAction(user.id, "Signed in");
+            logAction(user.id, "Signed in");
             res.json({ message: "Login Successful", token });
         } else {
-            await logAction(null, `Login Failed for email: ${email}`);
+            logAction(null, `Login Failed for email: ${email}`);
             return res.status(401).json("Login Failed");
         }
-    } catch (err) {
-        console.error("Error in /signin:", err);
-        res.status(500).json("Error during sign-in");
-    }
+    });
 });
 
 // Logout route
