@@ -9,7 +9,6 @@ import Home from './components/Home/Home';
 import AdminHome from './components/AdminHome/AdminHome';
 import ManageUsers from './components/ManageUsers/ManageUsers';
 import UserActivities from './components/UserActivities/UserActivities';
-import VerifyEmail from './components/VerifyEmail/VerifyEmail';
 
 function App() {
   return (
@@ -25,7 +24,6 @@ function App() {
                 <Route path="/adminhome" element={<AdminHome/>}/>
                 <Route path="/useractivity" element={<UserActivities/>}/>
                 <Route path="/usermanage" element={<ManageUsers/>}/>
-                <Route path="/verify" element={<VerifyEmail/>}/>
               </Routes>
             </main>
         </BrowserRouter>

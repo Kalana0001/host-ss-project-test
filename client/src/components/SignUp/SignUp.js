@@ -17,9 +17,8 @@ const SignUp = () => {
     confirmPassword: '',
     userType: 'user', // Default value
   });
-
+  
   const [errors, setErrors] = useState({});
-  const [dbStatus, setDbStatus] = useState(''); // To hold status of email test
   const navigate = useNavigate(); 
 
   const handleChange = (e) => {
@@ -35,13 +34,14 @@ const SignUp = () => {
     const validationErrors = validateForm(values);
     setErrors(validationErrors);
 
-    if (Object.keys(validationErrors).length === 0) {
+    if (!validationErrors.name && !validationErrors.email && !validationErrors.password && !validationErrors.confirmPassword) {
       try {
         const response = await axios.post('https://host-ss-project-test-server.vercel.app/signup', values); // Updated URL
 
         if (response.status === 200) {
-          const { token } = response.data;
+          const { token } = response.data; // Assume the token is returned in response.data
           
+          // Store the token in localStorage (or sessionStorage)
           localStorage.setItem('token', token);
           toast.success('Signup successful!');
           
@@ -50,45 +50,23 @@ const SignUp = () => {
             email: '',
             password: '',
             confirmPassword: '',
-            userType: 'user',
+            userType: 'user', // Reset to default value
           });
-
-          navigate('/verify');
+          navigate('/signin');
         } else {
           setErrors({ general: 'Signup failed. Please try again.' });
         }
       } catch (error) {
         console.error('Error:', error);
-        if (error.response) {
-          const status = error.response.status;
-          if (status === 400) setErrors({ general: 'Invalid input data.' });
-          else if (status === 409) setErrors({ general: 'Email already exists.' });
-          else setErrors({ general: 'An error occurred. Please try again later.' });
+        if (error.response && error.response.status === 400) {
+          setErrors({ general: 'Invalid input data.' });
+        } else if (error.response && error.response.status === 409) {
+          setErrors({ general: 'Email already exists.' });
         } else {
           setErrors({ general: 'An error occurred. Please try again later.' });
         }
         toast.error('An error occurred. Please try again later.');
       }
-    }
-  };
-
-  // Function to send a test email
-  const testEmail = async () => {
-    try {
-      const response = await axios.post('https://host-ss-project-test-server.vercel.app/test-email', {
-        email: values.email, // Send a test email to the current email value
-      });
-
-      if (response.status === 200) {
-        setDbStatus('Test email sent successfully!');
-        toast.success('Test email sent successfully!');
-      } else {
-        setDbStatus('Failed to send test email.');
-        toast.error('Failed to send test email.');
-      }
-    } catch (error) {
-      setDbStatus('Error sending test email.');
-      toast.error('Error sending test email.');
     }
   };
 
@@ -175,6 +153,7 @@ const SignUp = () => {
               </div>
             </div>
 
+            {/* Dropdown for user type */}
             <div className="input-div user-type">
               <div className="i">
                 <i className="fas fa-user-circle"></i>
@@ -197,14 +176,6 @@ const SignUp = () => {
             <a href='/signin' className="abtn">SIGN IN</a>
             <p>Already Have An Account?</p>
           </form>
-
-          {/* Button to send test email */}
-          <button className="btn-test-email" onClick={testEmail}>
-            Send Test Email
-          </button>
-
-          {/* Display the test email status */}
-          {dbStatus && <p className="db-status">{dbStatus}</p>}
         </div>
       </div>
       <ToastContainer />
