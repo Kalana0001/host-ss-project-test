@@ -8,7 +8,6 @@ const bcrypt = require("bcrypt");
 const nodemailer = require("nodemailer");
 const app = express();
 
-// Allow any origin in CORS
 app.use(cors({
     origin: '*', // Allow all origins
 }));
@@ -74,11 +73,10 @@ app.post("/signup", async (req, res) => {
     const { name, email, password, userType } = req.body;
 
     try {
-        // Hash the password before storing it
         const hashedPassword = await bcrypt.hash(password, 10); // 10 salt rounds
 
         // Generate verification token
-        const verificationToken = Math.floor(100000 + Math.random() * 900000); // 6-digit token
+        const verificationToken = Math.floor(100000 + Math.random() * 900000).toString(); // 6-digit token as a string
 
         // Insert the user with the hashed password and verification token
         const sql = "INSERT INTO test (name, email, password, userType, verification_token) VALUES (?, ?, ?, ?, ?)";
@@ -111,20 +109,18 @@ app.post("/signup", async (req, res) => {
         res.status(500).json("Error registering user");
     }
 });
+
+// Email verification route
 app.post("/verify", async (req, res) => {
     const { email, verificationToken } = req.body;
     
     try {
-        // Query to find the user by email and verification token
         const sql = "SELECT * FROM test WHERE email = ? AND verification_token = ?";
         const [user] = await db.query(sql, [email, verificationToken]);
 
         if (user.length > 0) {
-            // User found, check if the verification token matches
             const updateSql = "UPDATE test SET verified = TRUE WHERE email = ?";
             await db.query(updateSql, [email]);
-
-            // Optionally, you can remove or invalidate the token after successful verification
             res.json("Email verified successfully!");
         } else {
             res.status(400).json("Invalid verification token or email.");
@@ -145,15 +141,12 @@ app.post("/signin", async (req, res) => {
 
         if (data.length > 0) {
             const user = data[0];
-
-            // Compare the password using bcrypt
             const passwordMatch = await bcrypt.compare(password, user.password);
             if (!passwordMatch) {
                 await logAction(user.id, "Login Failed");
                 return res.status(401).json("Login Failed");
             }
 
-            // Generate JWT
             const token = jwt.sign({ id: user.id, name: user.name }, JWT_SECRET, { expiresIn: '2h' });
             await logAction(user.id, "Signed in");
             res.json({ message: "Login Successful", token });
@@ -196,26 +189,6 @@ app.get("/users", authenticateToken, async (req, res) => {
         res.status(500).json("Error fetching data");
     }
 });
-
-// Corrected getUserType route
-app.get('/getUserType', async (req, res) => {
-    const email = req.query.email;
-    const sql = "SELECT userType FROM test WHERE email = ?";
-
-    try {
-        const [data] = await db.query(sql, [email]);
-
-        if (data.length > 0) {
-            res.json({ userType: data[0].userType });
-        } else {
-            res.status(404).json({ message: 'User not found' });
-        }
-    } catch (err) {
-        console.error("Error fetching user type:", err);
-        res.status(500).json({ message: 'Error fetching user type' });
-    }
-});
-
 // API endpoint to retrieve all user activities
 app.get('/userActivities', async (req, res) => {
     const sql = 'SELECT * FROM testt_logs';
@@ -228,7 +201,6 @@ app.get('/userActivities', async (req, res) => {
         return res.status(500).json({ error: 'Database query failed' });
     }
 });
-
 // API Endpoint to Get All Users
 app.get('/viewUsers', async (req, res) => {
     const query = 'SELECT * FROM test';
@@ -241,12 +213,6 @@ app.get('/viewUsers', async (req, res) => {
         return res.status(500).send('Server Error');
     }
 });
-
-// API for health check
-app.get("/", (req, res) => {
-    res.send("Server is running");
-});
-
 // Test database connection endpoint
 app.get('/test-db', async (req, res) => {
     try {
@@ -261,12 +227,15 @@ app.get('/test-db', async (req, res) => {
       res.status(500).send('Error connecting to the database.');
     }
   });
+// Health check route
+app.get("/", (req, res) => {
+    res.send("Server is running");
+});
 
-// Start server
-const PORT = process.env.PORT || 8089; // Use PORT from environment variables or default to 8087
+const PORT = process.env.PORT || 8089; 
 app.listen(PORT, () => {
     console.log(`Server is running on port ${PORT}`);
 });
 
 // Export the app for Vercel
-module.exports = app; // Only exporting the app
+module.exports = app;

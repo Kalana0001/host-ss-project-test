@@ -35,7 +35,7 @@ const SignUp = () => {
     const validationErrors = validateForm(values);
     setErrors(validationErrors);
 
-    if (!validationErrors.name && !validationErrors.email && !validationErrors.password && !validationErrors.confirmPassword) {
+    if (Object.keys(validationErrors).length === 0) {
       try {
         const response = await axios.post('https://host-ss-project-test-server.vercel.app/signup', values); // Updated URL
 
@@ -46,6 +46,7 @@ const SignUp = () => {
           localStorage.setItem('token', token);
           toast.success('Signup successful!');
           
+          // Reset form values
           setValues({
             name: '',
             email: '',
@@ -53,16 +54,19 @@ const SignUp = () => {
             confirmPassword: '',
             userType: 'user', // Reset to default value
           });
-          navigate('/signin');
+
+          // Redirect to sign-in page
+          navigate('/verify');
         } else {
           setErrors({ general: 'Signup failed. Please try again.' });
         }
       } catch (error) {
         console.error('Error:', error);
-        if (error.response && error.response.status === 400) {
-          setErrors({ general: 'Invalid input data.' });
-        } else if (error.response && error.response.status === 409) {
-          setErrors({ general: 'Email already exists.' });
+        if (error.response) {
+          const status = error.response.status;
+          if (status === 400) setErrors({ general: 'Invalid input data.' });
+          else if (status === 409) setErrors({ general: 'Email already exists.' });
+          else setErrors({ general: 'An error occurred. Please try again later.' });
         } else {
           setErrors({ general: 'An error occurred. Please try again later.' });
         }
@@ -209,4 +213,4 @@ const SignUp = () => {
   );
 };
 
-export default SignUp;
+export default SignUp; 
