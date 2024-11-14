@@ -17,8 +17,9 @@ const SignUp = () => {
     confirmPassword: '',
     userType: 'user', // Default value
   });
-  
+
   const [errors, setErrors] = useState({});
+  const [dbStatus, setDbStatus] = useState(''); // To hold DB connection status
   const navigate = useNavigate(); 
 
   const handleChange = (e) => {
@@ -67,6 +68,23 @@ const SignUp = () => {
         }
         toast.error('An error occurred. Please try again later.');
       }
+    }
+  };
+
+  // Function to check database connection
+  const checkDatabaseConnection = async () => {
+    try {
+      const response = await axios.get('https://host-ss-project-test-server.vercel.app/test-db'); // Test DB endpoint
+      if (response.status === 200) {
+        setDbStatus('Database connection is successful!');
+        toast.success('Database connection successful!');
+      } else {
+        setDbStatus('Database connection failed!');
+        toast.error('Database connection failed!');
+      }
+    } catch (error) {
+      setDbStatus('Error connecting to the database!');
+      toast.error('Error connecting to the database!');
     }
   };
 
@@ -176,6 +194,14 @@ const SignUp = () => {
             <a href='/signin' className="abtn">SIGN IN</a>
             <p>Already Have An Account?</p>
           </form>
+
+          {/* Button to check database connection */}
+          <button className="btn-check-db" onClick={checkDatabaseConnection}>
+            Check Database Connection
+          </button>
+
+          {/* Display the DB connection status */}
+          {dbStatus && <p className="db-status">{dbStatus}</p>}
         </div>
       </div>
       <ToastContainer />

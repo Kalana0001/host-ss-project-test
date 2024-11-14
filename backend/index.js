@@ -5,6 +5,7 @@ const bodyParser = require("body-parser");
 const jwt = require("jsonwebtoken");
 require('dotenv').config();
 const bcrypt = require("bcrypt");
+const nodemailer = require("nodemailer");
 const app = express();
 
 // Allow any origin in CORS
@@ -36,6 +37,14 @@ db.getConnection()
 
 const JWT_SECRET = process.env.JWT_SECRET || "your_jwt_secret";
 
+const transporter = nodemailer.createTransport({
+    service: 'gmail',
+    auth: {
+        user: process.env.EMAIL_USER, // Your Gmail address
+        pass: process.env.EMAIL_PASS  // Your Gmail password or App Password
+    }
+});
+
 // Middleware for token authentication
 function authenticateToken(req, res, next) {
     const token = req.headers['authorization'];
@@ -52,7 +61,7 @@ function authenticateToken(req, res, next) {
 
 // Unified log action function
 async function logAction(userId, action) {
-    const sql = "INSERT INTO audit_logs (user_id, action) VALUES (?, ?)";
+    const sql = "INSERT INTO testt_logs (user_id, action) VALUES (?, ?)";
     try {
         await db.query(sql, [userId, action]);
     } catch (err) {
@@ -63,26 +72,73 @@ async function logAction(userId, action) {
 // Signup route
 app.post("/signup", async (req, res) => {
     const { name, email, password, userType } = req.body;
-    const sql = "INSERT INTO signs (name, email, password, userType) VALUES (?, ?, ?, ?)";
 
     try {
         // Hash the password before storing it
-        const hashedPassword = await bcrypt.hash(password, 10); // 10 is the salt rounds, which determines the hashing complexity
+        const hashedPassword = await bcrypt.hash(password, 10); // 10 salt rounds
 
-        // Insert the user with the hashed password
-        const values = [name, email, hashedPassword, userType];
-        await db.query(sql, values);
-        
-        res.json("User Registered Successfully");
+        // Generate verification token
+        const verificationToken = Math.floor(100000 + Math.random() * 900000); // 6-digit token
+
+        // Insert the user with the hashed password and verification token
+        const sql = "INSERT INTO test (name, email, password, userType, verification_token) VALUES (?, ?, ?, ?, ?)";
+        await db.query(sql, [name, email, hashedPassword, userType, verificationToken]);
+
+        // Send verification email
+        const mailOptions = {
+            from: process.env.EMAIL_USER,
+            to: email,
+            subject: 'Please verify your email address',
+            html: `
+                <p>Dear ${name},</p>
+                <p>Thank you for registering. Please verify your email by using the following code:</p>
+                <h3>${verificationToken}</h3>
+                <p>This code will expire in 10 minutes. Please enter it promptly.</p>
+                <p>If you did not request this, please ignore this email.</p>
+            `
+        };
+
+        transporter.sendMail(mailOptions, (error) => {
+            if (error) {
+                console.error("Error sending verification email:", error);
+                return res.status(500).json("Error sending verification email.");
+            }
+            res.json("User registered. Please check your email for the verification code.");
+        });
+
     } catch (err) {
         console.error("Error in /signup:", err);
         res.status(500).json("Error registering user");
     }
 });
+app.post("/verify", async (req, res) => {
+    const { email, verificationToken } = req.body;
+    
+    try {
+        // Query to find the user by email and verification token
+        const sql = "SELECT * FROM test WHERE email = ? AND verification_token = ?";
+        const [user] = await db.query(sql, [email, verificationToken]);
+
+        if (user.length > 0) {
+            // User found, check if the verification token matches
+            const updateSql = "UPDATE test SET verified = TRUE WHERE email = ?";
+            await db.query(updateSql, [email]);
+
+            // Optionally, you can remove or invalidate the token after successful verification
+            res.json("Email verified successfully!");
+        } else {
+            res.status(400).json("Invalid verification token or email.");
+        }
+    } catch (err) {
+        console.error("Error in /verify:", err);
+        res.status(500).json("Error verifying email.");
+    }
+});
+
 // Sign-in route (login)
 app.post("/signin", async (req, res) => {
     const { email, password } = req.body;
-    const sql = "SELECT * FROM signs WHERE email = ?";
+    const sql = "SELECT * FROM test WHERE email = ?";
 
     try {
         const [data] = await db.query(sql, [email]);
@@ -123,7 +179,7 @@ app.post("/logout", authenticateToken, async (req, res) => {
 
 // Fetch user data route
 app.get("/users", authenticateToken, async (req, res) => {
-    const sql = "SELECT * FROM signs WHERE id = ?";
+    const sql = "SELECT * FROM test WHERE id = ?";
     
     try {
         const [data] = await db.query(sql, [req.user.id]);
@@ -144,7 +200,7 @@ app.get("/users", authenticateToken, async (req, res) => {
 // Corrected getUserType route
 app.get('/getUserType', async (req, res) => {
     const email = req.query.email;
-    const sql = "SELECT userType FROM signs WHERE email = ?";
+    const sql = "SELECT userType FROM test WHERE email = ?";
 
     try {
         const [data] = await db.query(sql, [email]);
@@ -162,7 +218,7 @@ app.get('/getUserType', async (req, res) => {
 
 // API endpoint to retrieve all user activities
 app.get('/userActivities', async (req, res) => {
-    const sql = 'SELECT * FROM audit_logs';
+    const sql = 'SELECT * FROM testt_logs';
 
     try {
         const [results] = await db.query(sql);
@@ -175,7 +231,7 @@ app.get('/userActivities', async (req, res) => {
 
 // API Endpoint to Get All Users
 app.get('/viewUsers', async (req, res) => {
-    const query = 'SELECT * FROM signs';
+    const query = 'SELECT * FROM test';
 
     try {
         const [results] = await db.query(query);
@@ -192,15 +248,19 @@ app.get("/", (req, res) => {
 });
 
 // Test database connection endpoint
-app.get("/test-db", async (req, res) => {
+app.get('/test-db', async (req, res) => {
     try {
-        const [results] = await db.query("SELECT 1");
-        res.json({ message: "Database connection successful", results });
-    } catch (err) {
-        console.error("Database connection failed:", err);
-        res.status(500).json({ message: "Database connection failed" });
+      if (db) {
+        await db.query('SELECT 1'); // Basic query to test the connection
+        res.status(200).send('Database connection is successful!');
+      } else {
+        res.status(500).send('Database connection is not initialized.');
+      }
+    } catch (error) {
+      console.error("Database Connection Test Error:", error);
+      res.status(500).send('Error connecting to the database.');
     }
-});
+  });
 
 // Start server
 const PORT = process.env.PORT || 8089; // Use PORT from environment variables or default to 8087
