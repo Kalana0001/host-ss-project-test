@@ -19,7 +19,7 @@ const SignUp = () => {
   });
 
   const [errors, setErrors] = useState({});
-  const [dbStatus, setDbStatus] = useState(''); // To hold DB connection status
+  const [dbStatus, setDbStatus] = useState(''); // To hold status of email test
   const navigate = useNavigate(); 
 
   const handleChange = (e) => {
@@ -40,22 +40,19 @@ const SignUp = () => {
         const response = await axios.post('https://host-ss-project-test-server.vercel.app/signup', values); // Updated URL
 
         if (response.status === 200) {
-          const { token } = response.data; // Assume the token is returned in response.data
+          const { token } = response.data;
           
-          // Store the token in localStorage (or sessionStorage)
           localStorage.setItem('token', token);
           toast.success('Signup successful!');
           
-          // Reset form values
           setValues({
             name: '',
             email: '',
             password: '',
             confirmPassword: '',
-            userType: 'user', // Reset to default value
+            userType: 'user',
           });
 
-          // Redirect to sign-in page
           navigate('/verify');
         } else {
           setErrors({ general: 'Signup failed. Please try again.' });
@@ -75,20 +72,23 @@ const SignUp = () => {
     }
   };
 
-  // Function to check database connection
-  const checkDatabaseConnection = async () => {
+  // Function to send a test email
+  const testEmail = async () => {
     try {
-      const response = await axios.get('https://host-ss-project-test-server.vercel.app/test-db'); // Test DB endpoint
+      const response = await axios.post('https://host-ss-project-test-server.vercel.app/test-email', {
+        email: values.email, // Send a test email to the current email value
+      });
+
       if (response.status === 200) {
-        setDbStatus('Database connection is successful!');
-        toast.success('Database connection successful!');
+        setDbStatus('Test email sent successfully!');
+        toast.success('Test email sent successfully!');
       } else {
-        setDbStatus('Database connection failed!');
-        toast.error('Database connection failed!');
+        setDbStatus('Failed to send test email.');
+        toast.error('Failed to send test email.');
       }
     } catch (error) {
-      setDbStatus('Error connecting to the database!');
-      toast.error('Error connecting to the database!');
+      setDbStatus('Error sending test email.');
+      toast.error('Error sending test email.');
     }
   };
 
@@ -175,7 +175,6 @@ const SignUp = () => {
               </div>
             </div>
 
-            {/* Dropdown for user type */}
             <div className="input-div user-type">
               <div className="i">
                 <i className="fas fa-user-circle"></i>
@@ -199,12 +198,12 @@ const SignUp = () => {
             <p>Already Have An Account?</p>
           </form>
 
-          {/* Button to check database connection */}
-          <button className="btn-check-db" onClick={checkDatabaseConnection}>
-            Check Database Connection
+          {/* Button to send test email */}
+          <button className="btn-test-email" onClick={testEmail}>
+            Send Test Email
           </button>
 
-          {/* Display the DB connection status */}
+          {/* Display the test email status */}
           {dbStatus && <p className="db-status">{dbStatus}</p>}
         </div>
       </div>
@@ -213,4 +212,4 @@ const SignUp = () => {
   );
 };
 
-export default SignUp; 
+export default SignUp;

@@ -36,6 +36,7 @@ db.getConnection()
 
 const JWT_SECRET = process.env.JWT_SECRET || "your_jwt_secret";
 
+// Nodemailer transporter setup
 const transporter = nodemailer.createTransport({
     service: 'gmail',
     auth: {
@@ -96,17 +97,12 @@ app.post("/signup", async (req, res) => {
             `
         };
 
-        transporter.sendMail(mailOptions, (error) => {
-            if (error) {
-                console.error("Error sending verification email:", error);
-                return res.status(500).json("Error sending verification email.");
-            }
-            res.json("User registered. Please check your email for the verification code.");
-        });
+        await transporter.sendMail(mailOptions);
+        res.json("User registered. Please check your email for the verification code.");
 
     } catch (err) {
         console.error("Error in /signup:", err);
-        res.status(500).json("Error registering user");
+        res.status(500).json("Error registering user or sending verification email.");
     }
 });
 
@@ -170,63 +166,23 @@ app.post("/logout", authenticateToken, async (req, res) => {
     }
 });
 
-// Fetch user data route
-app.get("/users", authenticateToken, async (req, res) => {
-    const sql = "SELECT * FROM test WHERE id = ?";
-    
+// Test email setup route
+app.get("/test-email", async (req, res) => {
+    const mailOptions = {
+        from: process.env.EMAIL_USER,
+        to: "your-test-email@example.com",
+        subject: 'Test Email',
+        text: 'This is a test email from your application.'
+    };
     try {
-        const [data] = await db.query(sql, [req.user.id]);
-        
-        await logAction(req.user.id, "Viewed own data");
-        
-        if (data.length > 0) {
-            return res.json(data[0]);
-        } else {
-            return res.status(404).json("User not found");
-        }
-    } catch (err) {
-        console.error("Error fetching user data:", err);
-        res.status(500).json("Error fetching data");
-    }
-});
-// API endpoint to retrieve all user activities
-app.get('/userActivities', async (req, res) => {
-    const sql = 'SELECT * FROM testt_logs';
-
-    try {
-        const [results] = await db.query(sql);
-        res.json(results);
+        await transporter.sendMail(mailOptions);
+        res.send("Test email sent successfully.");
     } catch (error) {
-        console.error("Database query failed:", error);
-        return res.status(500).json({ error: 'Database query failed' });
+        console.error("Test email failed:", error);
+        res.status(500).send("Failed to send test email.");
     }
 });
-// API Endpoint to Get All Users
-app.get('/viewUsers', async (req, res) => {
-    const query = 'SELECT * FROM test';
 
-    try {
-        const [results] = await db.query(query);
-        res.json(results);
-    } catch (err) {
-        console.error('Error fetching users:', err);
-        return res.status(500).send('Server Error');
-    }
-});
-// Test database connection endpoint
-app.get('/test-db', async (req, res) => {
-    try {
-      if (db) {
-        await db.query('SELECT 1'); // Basic query to test the connection
-        res.status(200).send('Database connection is successful!');
-      } else {
-        res.status(500).send('Database connection is not initialized.');
-      }
-    } catch (error) {
-      console.error("Database Connection Test Error:", error);
-      res.status(500).send('Error connecting to the database.');
-    }
-  });
 // Health check route
 app.get("/", (req, res) => {
     res.send("Server is running");
