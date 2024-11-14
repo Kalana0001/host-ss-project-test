@@ -25,7 +25,7 @@ function VerifyEmail({ onClose }) {
 
       // Redirect to sign-in page after successful verification
       setTimeout(() => {
-        navigate('/signin');  // Navigate to sign-in page
+        navigate('/verify');  // Navigate to sign-in page
       }, 2000);  // Wait 2 seconds before redirect to give user time to see the message
 
     } catch (error) {
