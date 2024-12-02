@@ -18,7 +18,7 @@ const SignIn = () => {
     });
 
     const [errors, setErrors] = useState({});
-    const [recaptchaToken, setRecaptchaToken] = useState(""); // To store reCAPTCHA token
+    const [recaptchaToken, setRecaptchaToken] = useState(""); 
     const navigate = useNavigate(); 
 
     const fetchUserType = async (email) => {
@@ -90,7 +90,7 @@ const SignIn = () => {
     };
 
     const onChange = (value) => {
-        setRecaptchaToken(value); // Save the reCAPTCHA token
+        setRecaptchaToken(value); 
     };
 
     return (

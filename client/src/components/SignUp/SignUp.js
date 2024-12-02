@@ -15,7 +15,7 @@ const SignUp = () => {
     email: '',
     password: '',
     confirmPassword: '',
-    userType: 'user', // Default value
+    userType: 'user',
   });
   
   const [errors, setErrors] = useState({});
@@ -36,12 +36,12 @@ const SignUp = () => {
 
     if (!validationErrors.name && !validationErrors.email && !validationErrors.password && !validationErrors.confirmPassword) {
       try {
-        const response = await axios.post('https://host-ss-project-test-server.vercel.app/signup', values); // Updated URL
+        const response = await axios.post('https://host-ss-project-test-server.vercel.app/signup', values); 
 
         if (response.status === 200) {
-          const { token } = response.data; // Assume the token is returned in response.data
+          const { token } = response.data; 
           
-          // Store the token in localStorage (or sessionStorage)
+          
           localStorage.setItem('token', token);
           toast.success('Signup successful!');
           
@@ -50,7 +50,7 @@ const SignUp = () => {
             email: '',
             password: '',
             confirmPassword: '',
-            userType: 'user', // Reset to default value
+            userType: 'user', 
           });
           navigate('/signin');
         } else {

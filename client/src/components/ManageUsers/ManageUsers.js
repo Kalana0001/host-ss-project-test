@@ -1,15 +1,15 @@
 import React, { useEffect, useState } from 'react';
-import './ManageUsers.css'; // Make sure to include your styles
+import './ManageUsers.css'; 
 
 const ManageUsers = () => {
     const [users, setActivities] = useState([]);
     const [error, setError] = useState(null);
-    const BACKEND_URL = 'https://host-ss-project-test-server.vercel.app'; // Add your backend URL here
+    const BACKEND_URL = 'https://host-ss-project-test-server.vercel.app'; 
 
     useEffect(() => {
         const fetchUserActivities = async () => {
             try {
-                const response = await fetch(`${BACKEND_URL}/viewUsers`, { // Use the backend URL
+                const response = await fetch(`${BACKEND_URL}/viewUsers`, { 
                     method: 'GET',
                     headers: {
                         'Authorization': `Bearer ${localStorage.getItem('token')}`,

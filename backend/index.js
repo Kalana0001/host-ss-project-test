@@ -1,5 +1,5 @@
 const express = require("express");
-const mysql = require("mysql2/promise"); // Use promise-based version for better async support
+const mysql = require("mysql2/promise"); 
 const cors = require("cors");
 const bodyParser = require("body-parser");
 const jwt = require("jsonwebtoken");
@@ -9,12 +9,12 @@ const app = express();
 
 // Allow any origin in CORS
 app.use(cors({
-    origin: '*', // Allow all origins
+    origin: '*', 
 }));
 app.use(express.json());
 app.use(bodyParser.urlencoded({ extended: true }));
 
-// Create a connection pool for the database
+
 const db = mysql.createPool({
     host: process.env.DB_HOST,
     user: process.env.DB_USERNAME,
@@ -67,10 +67,10 @@ app.post("/signup", async (req, res) => {
     const sql = "INSERT INTO signs (name, email, password, userType) VALUES (?, ?, ?, ?)";
 
     try {
-        // Hash the password before storing it
-        const hashedPassword = await bcrypt.hash(password, 10); // 10 is the salt rounds, which determines the hashing complexity
+        
+        const hashedPassword = await bcrypt.hash(password, 10); 
 
-        // Insert the user with the hashed password
+        
         const values = [name, email, hashedPassword, userType];
         await db.query(sql, values);
         
@@ -91,14 +91,14 @@ app.post("/signin", async (req, res) => {
         if (data.length > 0) {
             const user = data[0];
 
-            // Compare the password using bcrypt
+            
             const passwordMatch = await bcrypt.compare(password, user.password);
             if (!passwordMatch) {
                 await logAction(user.id, "Login Failed");
                 return res.status(401).json("Login Failed");
             }
 
-            // Generate JWT
+           
             const token = jwt.sign({ id: user.id, name: user.name }, JWT_SECRET, { expiresIn: '2h' });
             await logAction(user.id, "Signed in");
             res.json({ message: "Login Successful", token });
@@ -142,7 +142,7 @@ app.get("/users", authenticateToken, async (req, res) => {
     }
 });
 
-// Corrected getUserType route
+
 app.get('/getUserType', async (req, res) => {
     const email = req.query.email;
     const sql = "SELECT userType FROM signs WHERE email = ?";
@@ -214,7 +214,7 @@ app.post('/verify-recaptcha', async (req, res) => {
     try {
         const response = await axios.post(`https://www.google.com/recaptcha/api/siteverify`, null, {
             params: {
-                secret: RECAPTCHA_SECRET_KEY, // Securely access the key
+                secret: RECAPTCHA_SECRET_KEY, 
                 response: token,
             },
         });
@@ -231,10 +231,10 @@ app.post('/verify-recaptcha', async (req, res) => {
 });
 
 // Start server
-const PORT = process.env.PORT || 8089; // Use PORT from environment variables or default to 8087
+const PORT = process.env.PORT || 8089; 
 app.listen(PORT, () => {
     console.log(`Server is running on port ${PORT}`);
 });
 
 // Export the app for Vercel
-module.exports = app; // Only exporting the app
+module.exports = app; 

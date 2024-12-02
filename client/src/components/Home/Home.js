@@ -17,13 +17,13 @@ function Home() {
   });
 
   const navigate = useNavigate(); 
-  const BACKEND_URL = 'https://host-ss-project-test-server.vercel.app'; // Add your backend URL here
+  const BACKEND_URL = 'https://host-ss-project-test-server.vercel.app'; 
 
   useEffect(() => {
-    // Fetch user data from the API
+    
     const fetchUserData = async () => {
       try {
-          const token = localStorage.getItem('token'); // Get the JWT from local storage
+          const token = localStorage.getItem('token'); 
   
           if (!token) {
               console.error('No token found, user is not authenticated.');
@@ -31,19 +31,19 @@ function Home() {
               return; 
           }
   
-          const response = await fetch(`${BACKEND_URL}/users`, { // Use the backend URL
+          const response = await fetch(`${BACKEND_URL}/users`, { 
               method: 'GET',
               headers: {
-                  Authorization: `Bearer ${token}`, // Include the token in the request headers
+                  Authorization: `Bearer ${token}`, 
                   'Content-Type': 'application/json', 
               },
           });
   
           if (response.status === 403) {
-              // Token is invalid or expired
+              
               alert("Your session has expired, please log in again.");
-              localStorage.removeItem('token'); // Optionally clear token from local storage
-              navigate('/signin'); // Redirect to sign-in
+              localStorage.removeItem('token'); 
+              navigate('/signin'); 
               return; 
           }
   
@@ -93,21 +93,21 @@ function Home() {
     if (confirmLogout) {
         const token = localStorage.getItem('token');
         try {
-            await fetch(`${BACKEND_URL}/logout`, { // Use the backend URL
+            await fetch(`${BACKEND_URL}/logout`, { 
                 method: "POST",
                 headers: {
                     "Authorization": `Bearer ${token}`,
                     "Content-Type": "application/json"
                 },
             });
-            localStorage.removeItem('token');  // Remove token from local storage
-            console.log('User logged out');     // Logs logout action in console
-            navigate('/');                      // Navigate to home page
+            localStorage.removeItem('token');  
+            console.log('User logged out');     
+            navigate('/');                      
         } catch (error) {
-            console.error("Logout failed:", error); // Log error if logout fails
+            console.error("Logout failed:", error); 
         }
     } else {
-        console.log('Logout canceled');          // Logs cancel action in console
+        console.log('Logout canceled');   
     }
   };
 
