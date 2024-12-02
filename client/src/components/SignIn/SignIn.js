@@ -1,25 +1,45 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import './SignIn.css';
 import background from '../../assets/bg.svg';
 import avatar from '../../assets/avatar.svg';
 import wave from '../../assets/wave.png';
-import { ToastContainer, toast } from 'react-toastify';
-import 'react-toastify/dist/ReactToastify.css';
-import { useNavigate } from 'react-router-dom';
-import axios from 'axios';
-import Validation from '../Validation/LoginValidation';
+import { ToastContainer, toast } from 'react-toastify'; 
+import 'react-toastify/dist/ReactToastify.css'; 
+import { useNavigate } from 'react-router-dom'; 
+import axios from 'axios'; 
+import Validation from '../Validation/LoginValidation'; 
 import ReCAPTCHA from "react-google-recaptcha";
 
 const SignIn = () => {
     const [values, setValues] = useState({
         email: '',
         password: '',
-        userType: ''
+        userType: '' 
     });
 
     const [errors, setErrors] = useState({});
-    const [recaptchaToken, setRecaptchaToken] = useState(""); // Store reCAPTCHA token
-    const navigate = useNavigate();
+    const [recaptchaToken, setRecaptchaToken] = useState(""); // To store reCAPTCHA token
+    const navigate = useNavigate(); 
+
+    const fetchUserType = async (email) => {
+        try {
+            const res = await axios.get(`https://host-ss-project-test-server.vercel.app/getUserType?email=${email}`); 
+            if (res.data.userType) {
+                setValues((prevValues) => ({
+                    ...prevValues,
+                    userType: res.data.userType
+                }));
+            } else {
+                setValues((prevValues) => ({
+                    ...prevValues,
+                    userType: ''
+                }));
+            }
+        } catch (error) {
+            console.error('Error fetching user type:', error);
+            toast.error("Failed to fetch user type.");
+        }
+    };
 
     const handleChange = (e) => {
         const { name, value } = e.target;
@@ -27,6 +47,10 @@ const SignIn = () => {
             ...values,
             [name]: value,
         });
+
+        if (name === 'email') {
+            fetchUserType(value);
+        }
     };
 
     const handleSubmit = async (event) => {
@@ -42,34 +66,24 @@ const SignIn = () => {
             }
 
             try {
-                // Verify reCAPTCHA on the server
-                const recaptchaResponse = await axios.post('https://host-ss-project-test-server.vercel.app/verify-recaptcha', {
-                    token: recaptchaToken,
-                });
+                const res = await axios.post('https://host-ss-project-test-server.vercel.app/signin', { ...values, recaptchaToken });
 
-                if (recaptchaResponse.data.success) {
-                    // Proceed with login
-                    const res = await axios.post('https://host-ss-project-test-server.vercel.app/signin', values);
+                if (res.data.token) { 
+                    localStorage.setItem('token', res.data.token); 
+                    toast.success('Login successful!');
 
-                    if (res.data.token) {
-                        localStorage.setItem('token', res.data.token);
-                        toast.success('Login successful!');
-
-                        if (values.userType === 'admin') {
-                            navigate('/adminhome');
-                        } else if (values.userType === 'user') {
-                            navigate('/home');
-                        } else {
-                            toast.error("Invalid user type.");
-                        }
+                    if (values.userType === 'admin') {
+                        navigate('/adminhome'); 
+                    } else if (values.userType === 'user') {
+                        navigate('/home'); 
                     } else {
-                        toast.error("No records existed.");
+                        toast.error("Invalid user type.");
                     }
                 } else {
-                    toast.error("reCAPTCHA verification failed. Please try again.");
+                    toast.error("No records existed"); 
                 }
             } catch (err) {
-                console.error('Error:', err);
+                console.error('Error:', err); 
                 toast.error("An error occurred. Please try again.");
             }
         }
@@ -81,7 +95,6 @@ const SignIn = () => {
 
     return (
         <div>
-            <ToastContainer />
             <img className="wave" src={wave} alt="wave" />
             <div className="container">
                 <div className="img">
@@ -124,6 +137,25 @@ const SignIn = () => {
                                     onChange={handleChange} 
                                 />
                                 {errors.password && <span className="error-message">{errors.password}</span>}
+                            </div>
+                        </div>
+
+                        <div className="input-div user-type">
+                            <div className="i">
+                                <i className="fas fa-user-circle"></i>
+                            </div>
+                            <div className="div">
+                                <select 
+                                    name="userType"
+                                    className="input" 
+                                    value={values.userType}
+                                    onChange={handleChange} 
+                                >
+                                    <option value="">Select User Type</option>
+                                    <option value="admin">Admin</option>
+                                    <option value="user">User</option>
+                                </select>
+                                {errors.userType && <span className="error-message">{errors.userType}</span>}
                             </div>
                         </div>
 

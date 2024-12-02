@@ -203,9 +203,13 @@ app.get("/test-db", async (req, res) => {
     }
 });
 
-// Example usage in an API route
+// reCAPTCHA verification API route
 app.post('/verify-recaptcha', async (req, res) => {
     const { token } = req.body;
+
+    if (!token) {
+        return res.status(400).json({ success: false, message: 'reCAPTCHA token is missing' });
+    }
 
     try {
         const response = await axios.post(`https://www.google.com/recaptcha/api/siteverify`, null, {
@@ -218,7 +222,7 @@ app.post('/verify-recaptcha', async (req, res) => {
         if (response.data.success) {
             res.json({ success: true, message: "reCAPTCHA verified successfully" });
         } else {
-            res.json({ success: false, message: "reCAPTCHA verification failed" });
+            res.status(400).json({ success: false, message: "reCAPTCHA verification failed", errors: response.data['error-codes'] });
         }
     } catch (err) {
         console.error('Error verifying reCAPTCHA:', err);
