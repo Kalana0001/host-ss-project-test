@@ -8,7 +8,7 @@ function VerifyEmail({ onClose }) {
   const [token, setToken] = useState('');
   const [message, setMessage] = useState('');
   const [loading, setLoading] = useState(false);
-  const navigate = useNavigate();  // Add useNavigate hook
+  const navigate = useNavigate(); 
 
   const handleVerify = async (e) => {
     e.preventDefault();
@@ -23,13 +23,13 @@ function VerifyEmail({ onClose }) {
       const response = await axios.post('https://host-ss-project-test-server.vercel.app/verify', { email, verificationToken: token });
       setMessage(response.data.message || 'Email verified successfully!');
 
-      // Redirect to sign-in page after successful verification
+    
       setTimeout(() => {
-        navigate('/verify');  // Navigate to sign-in page
-      }, 2000);  // Wait 2 seconds before redirect to give user time to see the message
+        navigate('/verify'); 
+      }, 2000);  
 
     } catch (error) {
-      // Display specific error message
+    
       if (error.response) {
         setMessage(error.response.data.message || 'Invalid verification token or email.');
       } else {

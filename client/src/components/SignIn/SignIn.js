@@ -1,44 +1,25 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState } from 'react';
 import './SignIn.css';
 import background from '../../assets/bg.svg';
 import avatar from '../../assets/avatar.svg';
 import wave from '../../assets/wave.png';
-import { ToastContainer, toast } from 'react-toastify'; 
-import 'react-toastify/dist/ReactToastify.css'; 
-import { useNavigate } from 'react-router-dom'; 
-import axios from 'axios'; 
-import Validation from '../Validation/LoginValidation'; // Import the validation function
+import { ToastContainer, toast } from 'react-toastify';
+import 'react-toastify/dist/ReactToastify.css';
+import { useNavigate } from 'react-router-dom';
+import axios from 'axios';
+import Validation from '../Validation/LoginValidation';
+import ReCAPTCHA from "react-google-recaptcha";
 
 const SignIn = () => {
     const [values, setValues] = useState({
         email: '',
         password: '',
-        userType: '' // State for user type
+        userType: ''
     });
 
     const [errors, setErrors] = useState({});
-    const navigate = useNavigate(); 
-
-    // Fetch user type based on email input
-    const fetchUserType = async (email) => {
-        try {
-            const res = await axios.get(`https://host-ss-project-test-server.vercel.app/getUserType?email=${email}`); // Use the backend URL
-            if (res.data.userType) {
-                setValues((prevValues) => ({
-                    ...prevValues,
-                    userType: res.data.userType
-                }));
-            } else {
-                setValues((prevValues) => ({
-                    ...prevValues,
-                    userType: ''
-                }));
-            }
-        } catch (error) {
-            console.error('Error fetching user type:', error);
-            toast.error("Failed to fetch user type.");
-        }
-    };
+    const [recaptchaToken, setRecaptchaToken] = useState(""); // Store reCAPTCHA token
+    const navigate = useNavigate();
 
     const handleChange = (e) => {
         const { name, value } = e.target;
@@ -46,11 +27,6 @@ const SignIn = () => {
             ...values,
             [name]: value,
         });
-
-        // Fetch user type when email changes
-        if (name === 'email') {
-            fetchUserType(value);
-        }
     };
 
     const handleSubmit = async (event) => {
@@ -60,33 +36,52 @@ const SignIn = () => {
         setErrors(validationErrors);
 
         if (validationErrors.email === "" && validationErrors.password === "") {
+            if (!recaptchaToken) {
+                toast.error("Please complete the reCAPTCHA.");
+                return;
+            }
+
             try {
-                const res = await axios.post('https://host-ss-project-test-server.vercel.app/signin', values); // Use the backend URL
+                // Verify reCAPTCHA on the server
+                const recaptchaResponse = await axios.post('https://host-ss-project-test-server.vercel.app/verify-recaptcha', {
+                    token: recaptchaToken,
+                });
 
-                if (res.data.token) { // Check if token is present in response
-                    localStorage.setItem('token', res.data.token); // Store the JWT token in local storage
-                    toast.success('Login successful!');
+                if (recaptchaResponse.data.success) {
+                    // Proceed with login
+                    const res = await axios.post('https://host-ss-project-test-server.vercel.app/signin', values);
 
-                    // Navigate based on user type
-                    if (values.userType === 'admin') {
-                        navigate('/adminhome'); // Navigate to admin home
-                    } else if (values.userType === 'user') {
-                        navigate('/home'); // Navigate to user home
+                    if (res.data.token) {
+                        localStorage.setItem('token', res.data.token);
+                        toast.success('Login successful!');
+
+                        if (values.userType === 'admin') {
+                            navigate('/adminhome');
+                        } else if (values.userType === 'user') {
+                            navigate('/home');
+                        } else {
+                            toast.error("Invalid user type.");
+                        }
                     } else {
-                        toast.error("Invalid user type.");
+                        toast.error("No records existed.");
                     }
                 } else {
-                    toast.error("No records existed"); 
+                    toast.error("reCAPTCHA verification failed. Please try again.");
                 }
             } catch (err) {
-                console.error('Error:', err); 
+                console.error('Error:', err);
                 toast.error("An error occurred. Please try again.");
             }
         }
     };
 
+    const onChange = (value) => {
+        setRecaptchaToken(value); // Save the reCAPTCHA token
+    };
+
     return (
         <div>
+            <ToastContainer />
             <img className="wave" src={wave} alt="wave" />
             <div className="container">
                 <div className="img">
@@ -111,7 +106,7 @@ const SignIn = () => {
                                     value={values.email}
                                     onChange={handleChange} 
                                 />
-                                {errors.email && <span className="error-message">{errors.email}</span>} {/* Display email error */}
+                                {errors.email && <span className="error-message">{errors.email}</span>}
                             </div>
                         </div>
 
@@ -128,33 +123,18 @@ const SignIn = () => {
                                     value={values.password}
                                     onChange={handleChange} 
                                 />
-                                {errors.password && <span className="error-message">{errors.password}</span>} {/* Display password error */}
+                                {errors.password && <span className="error-message">{errors.password}</span>}
                             </div>
                         </div>
 
-                        {/* User Type Dropdown */}
-                        <div className="input-div user-type">
-                            <div className="i">
-                                <i className="fas fa-user-circle"></i>
-                            </div>
-                            <div className="div">
-                                <select 
-                                    name="userType"
-                                    className="input" 
-                                    value={values.userType}
-                                    onChange={handleChange} 
-                                >
-                                    <option value="">Select User Type</option>
-                                    <option value="admin">Admin</option>
-                                    <option value="user">User</option>
-                                    {/* Add other user types if needed */}
-                                </select>
-                                {errors.userType && <span className="error-message">{errors.userType}</span>} {/* Display user type error */}
-                            </div>
-                        </div>
+                        <ReCAPTCHA
+                            className='recaptcha'
+                            sitekey="6LdmbpAqAAAAAFny7WuwsaoIV8g_2ELM1t9ZLn9_"
+                            onChange={onChange}
+                        />
 
                         <input type="submit" className="btn" value="Sign In" />
-                        <a href='/signup' className="abtn">SIGN UP</a>
+                        <a href='/signup' className="sign_route">SIGN UP</a>
                         <p>Don't Have An Account?</p>
                     </form>
                 </div>

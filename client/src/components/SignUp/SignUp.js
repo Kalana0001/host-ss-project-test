@@ -153,7 +153,6 @@ const SignUp = () => {
               </div>
             </div>
 
-            {/* Dropdown for user type */}
             <div className="input-div user-type">
               <div className="i">
                 <i className="fas fa-user-circle"></i>
@@ -173,7 +172,7 @@ const SignUp = () => {
 
             <a href="#">Forgot Password?</a>
             <input type="submit" className="btn" value="Sign Up" />
-            <a href='/signin' className="abtn">SIGN IN</a>
+            <a href='/signin' className="sign_route">SIGN IN</a>
             <p>Already Have An Account?</p>
           </form>
         </div>

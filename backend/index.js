@@ -35,6 +35,7 @@ db.getConnection()
     });
 
 const JWT_SECRET = process.env.JWT_SECRET || "your_jwt_secret";
+const RECAPTCHA_SECRET_KEY = process.env.RECAPTCHA_SECRET_KEY;
 
 // Middleware for token authentication
 function authenticateToken(req, res, next) {
@@ -199,6 +200,29 @@ app.get("/test-db", async (req, res) => {
     } catch (err) {
         console.error("Database connection failed:", err);
         res.status(500).json({ message: "Database connection failed" });
+    }
+});
+
+// Example usage in an API route
+app.post('/verify-recaptcha', async (req, res) => {
+    const { token } = req.body;
+
+    try {
+        const response = await axios.post(`https://www.google.com/recaptcha/api/siteverify`, null, {
+            params: {
+                secret: RECAPTCHA_SECRET_KEY, // Securely access the key
+                response: token,
+            },
+        });
+
+        if (response.data.success) {
+            res.json({ success: true, message: "reCAPTCHA verified successfully" });
+        } else {
+            res.json({ success: false, message: "reCAPTCHA verification failed" });
+        }
+    } catch (err) {
+        console.error('Error verifying reCAPTCHA:', err);
+        res.status(500).json({ success: false, message: "Server error during reCAPTCHA verification" });
     }
 });
 
